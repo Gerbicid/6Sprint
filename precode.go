@@ -59,21 +59,13 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 	// так как все успешно, то статус OK
 	w.WriteHeader(http.StatusOK)
 	// записываем сериализованные в JSON данные в тело ответа
-	w.Write(resp)
+	_, _ = w.Write(resp)
 }
 
 func postTask(w http.ResponseWriter, r *http.Request) {
 
 	var task Task
 	var buf bytes.Buffer
-
-	id := chi.URLParam(r, "id")
-
-	task, ok := tasks[id]
-	if ok {
-		http.Error(w, "Задача уже существует", http.StatusBadRequest)
-		return
-	}
 
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
@@ -83,6 +75,11 @@ func postTask(w http.ResponseWriter, r *http.Request) {
 
 	if err = json.Unmarshal(buf.Bytes(), &task); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if _, ok := tasks[task.ID]; ok {
+		http.Error(w, "Задача уже существует", http.StatusBadRequest)
 		return
 	}
 
@@ -115,15 +112,9 @@ func getTask(w http.ResponseWriter, r *http.Request) {
 func delTask(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	task, ok := tasks[id]
+	_, ok := tasks[id]
 	if !ok {
 		http.Error(w, "Задача не найдена", http.StatusBadRequest)
-		return
-	}
-
-	resp, err := json.Marshal(task)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -131,7 +122,7 @@ func delTask(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	//w.Write(task)
 }
 
 func main() {
