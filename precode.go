@@ -63,8 +63,17 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 }
 
 func postTask(w http.ResponseWriter, r *http.Request) {
+
 	var task Task
 	var buf bytes.Buffer
+
+	id := chi.URLParam(r, "id")
+
+	task, ok := tasks[id]
+	if ok {
+		http.Error(w, "Задача уже существует", http.StatusBadRequest)
+		return
+	}
 
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
